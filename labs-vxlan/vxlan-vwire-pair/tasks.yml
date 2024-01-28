@@ -1,0 +1,91 @@
+- hosts: fortigates
+  serial: 1
+  collections:
+    - fortinet.fortios
+  connection: httpapi
+  vars:
+    vdom: "root"
+    ansible_httpapi_use_ssl: yes
+    ansible_httpapi_validate_certs: no
+    ansible_httpapi_port: 443
+  tasks:
+    - name: Configure system interface for port1
+      fortios_system_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_interface:
+          name: "port1"
+          mode: "static"
+          ip: "{{ port1_ip }}"
+
+    - name: Configure system interface for port2
+      fortios_system_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_interface:
+          name: "port2"
+          mode: "static"
+          ip: "{{ port2_ip }}"
+
+    - name: Configure VXLAN devices.
+      fortios_system_vxlan:
+        vdom:  "{{ vdom }}"
+        state: "present"
+        system_vxlan:
+          interface: "port2"
+          name: "vxlan1"
+          remote_ip:
+          -
+              ip: "{{ vxlan_remote_ip }}"
+          vni: "1000"
+
+    - name: Configure router static
+      fortios_router_static:
+        vdom: "{{ vdom }}"
+        state: present
+        router_static:
+          seq_num: "1"
+          device: "port2"
+          gateway: "{{ port2_gateway }}"
+
+    - name: Configure virtual wire pairs.
+      fortios_system_virtual_wire_pair:
+        vdom:  "{{ vdom }}"
+        state: "present"
+        system_virtual_wire_pair:
+          member:
+          -
+              interface_name: "port4"
+          - 
+              interface_name: "vxlan1"
+          name: "vpair"
+          wildcard_vlan: "enable"
+    - name: Configure IPv4/IPv6 policies.
+      fortios_firewall_policy:
+        vdom:  "{{ vdom }}"
+        state: "present"
+        firewall_policy:
+          action: "accept"
+          comments: "allowvpair-traffic"
+          dstaddr:
+          -
+              name: "all"
+          dstintf:
+          -
+              name: "port4"
+          -
+              name: "vxlan1"
+          srcintf:
+          -
+              name: "port4"
+          -
+              name: "vxlan1"
+          service:
+          -
+              name: "all"
+          srcaddr:
+          -
+              name: "all"
+          status: "enable"
+          schedule: "always"
+          policyid: "0"
