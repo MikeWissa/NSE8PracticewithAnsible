@@ -5,4 +5,4 @@
 create hosts file and folder host_vars with a yml file for each host
 
 # run playbook
-ansible-playbook -i hosts tasks.yaml
+ansible-playbook -i hosts tasks.yml
