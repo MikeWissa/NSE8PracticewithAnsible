@@ -1,1 +1,99 @@
+- hosts: fortigates
+  serial: 1
+  collections:
+    - fortinet.fortios
+  connection: httpapi
+  vars:
+    vdom: "root"
+    ansible_httpapi_use_ssl: yes
+    ansible_httpapi_validate_certs: no
+    ansible_httpapi_port: 443
+  tasks:
+    - name: Configure system interface for port1
+      fortios_system_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_interface:
+          name: "port1"
+          mode: "static"
+          ip: "{{ port1_ip }}"
 
+    - name: Configure system interface for port2
+      fortios_system_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_interface:
+          name: "port2"
+          mode: "static"
+          ip: "{{ port2_ip }}"
+
+    - name: Configure VXLAN devices.
+      fortios_system_vxlan:
+        vdom:  "{{ vdom }}"
+        state: "present"
+        system_vxlan:
+          interface: "port2"
+          name: "vxlan1"
+          remote_ip:
+          -
+              ip: "{{ vxlan_remote_ip }}"
+          vni: "1000"
+
+    - name: Configure router static
+      fortios_router_static:
+        vdom: "{{ vdom }}"
+        state: present
+        router_static:
+          seq_num: "1"
+          device: "port2"
+          gateway: "{{ port2_gateway }}"
+
+    - name: Configure system switch interface
+      fortios_system_switch_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_switch_interface:
+          intra_switch_policy: "implicit"
+          name: "sw1"
+          vdom: "{{ vdom }}"
+          member: 
+           - 
+              interface_name:  "port4"
+           - 
+              interface_name:  "vxlan1"
+    - name: Configure IP for switch interface
+      fortios_system_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_interface:
+          name: "sw1"
+          ip: "{{ sw1_ip }}"
+          type: "switch"
+          defaultgw: "disable"
+    - name: Configure DHCP servers.
+      fortios_system_dhcp_server:
+        vdom:  "{{ vdom }}"
+        state: "present"
+        system_dhcp_server:
+          id:  "2"
+          interface: "sw1"
+          ip_mode: "range"
+          ip_range:
+          -
+              end_ip: "172.34.0.250"
+              id:  "3"
+              lease_time: "0"
+              start_ip: "172.34.0.6"
+              uci_match: "disable"
+              uci_string:
+              -
+                  uci_string: "none"
+              vci_match: "disable"
+              vci_string:
+              -
+                  vci_string: "none"
+          ipsec_lease_hold: "60"
+          lease_time: "604800"
+          mac_acl_default_action: "assign"
+          netmask: "255.255.255.0"
+          default_gateway: "172.34.0.1"
