@@ -1,0 +1,8 @@
+port1_ip: "192.168.126.14/24"
+port2_ip: "10.4.0.1/30"
+vxlan_remote_ip: "10.3.0.1"
+port2_gateway: "10.4.0.2"
+phase1name: "TO-BRANCH1"
+phase2name: "TO-BRANCH1"
+localgwip:  "10.4.0.1"
+remotegwip: "10.3.0.1"
