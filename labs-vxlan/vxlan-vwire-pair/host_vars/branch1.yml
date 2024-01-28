@@ -1,0 +1,4 @@
+port1_ip: "192.168.126.13/24"
+port2_ip: "10.3.0.1/30"
+vxlan_remote_ip: "10.4.0.1"
+port2_gateway: "10.3.0.2"
