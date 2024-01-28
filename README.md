@@ -6,3 +6,4 @@ This github repo is to record my learning of diffirent topics relating to Fortin
 ![vxlan point to point](https://github.com/MikeWissa/NSE8PracticewithAnsible/tree/main/labs-vxlan/vxlan-point-to-point)
 
 ![vxlan-vwire-pair](https://github.com/MikeWissa/NSE8PracticewithAnsible/tree/main/labs-vxlan/vxlan-vwire-pair)
+[Link to vxlan-ipsec-over-virtuawire-pair lab](https://github.com/MikeWissa/NSE8PracticewithAnsible/tree/main/labs-vxlan/vxlan-ipsec-vwirepair-lab)
