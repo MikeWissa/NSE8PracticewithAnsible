@@ -1,0 +1,7 @@
+[fortigates]
+branch1 ansible_host=192.168.126.13 ansible_user=admin ansible_password=fortinet
+branch2 ansible_host=192.168.126.14 ansible_user=admin ansible_password=fortinet
+
+[fortigates:vars]
+ansible_network_os=fortinet.fortios.fortios
+
