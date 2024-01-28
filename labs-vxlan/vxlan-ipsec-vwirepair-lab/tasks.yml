@@ -1,0 +1,342 @@
+- hosts: fortigates
+  ignore_unreachable: yes
+  ignore_errors: yes
+  serial: 1
+  collections:
+    - fortinet.fortios
+  connection: httpapi
+  vars:
+    vdom: "root"
+    ansible_httpapi_use_ssl: yes
+    ansible_httpapi_validate_certs: no
+    ansible_httpapi_port: 443
+  tasks:
+    - name: Configure system interface for port1
+      fortios_system_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_interface:
+          name: "port1"
+          mode: "static"
+          ip: "{{ port1_ip }}"
+
+    - name: Configure system interface for port2
+      fortios_system_interface:
+        vdom: "{{ vdom }}"
+        state: present
+        system_interface:
+          name: "port2"
+          mode: "static"
+          ip: "{{ port2_ip }}"
+
+    - name: Configure VXLAN devices.
+      fortios_system_vxlan:
+        vdom:  "{{ vdom }}"
+        state: "present"
+        system_vxlan:
+          interface: "port2"
+          name: "vxlan1"
+          remote_ip:
+          -
+              ip: "{{ vxlan_remote_ip }}"
+          vni: "1000"
+
+    - name: Configure router static
+      fortios_router_static:
+        vdom: "{{ vdom }}"
+        state: present
+        router_static:
+          seq_num: "1"
+          device: "port2"
+          gateway: "{{ port2_gateway }}"
+
+    - name: Configure virtual wire pairs.
+      fortios_system_virtual_wire_pair:
+        vdom:  "{{ vdom }}"
+        state: "present"
+        system_virtual_wire_pair:
+          member:
+          -
+              interface_name: "port4"
+          - 
+              interface_name: "vxlan1"
+          name: "vpair"
+          wildcard_vlan: "enable"
+    - name: add firewall rule.
+      fortios_firewall_policy:
+        vdom: '{{ vdom }}'
+        state: present
+        firewall_policy:
+          policyid: 1
+          status: enable
+          name: test
+          srcintf:
+          - name: port4
+          - name: vxlan1
+          dstintf:
+          - name: port4
+          - name: vxlan1
+          action: accept
+          srcaddr:
+          - name: all
+          dstaddr:
+          - name: all
+          schedule: always
+          service:
+          - name: ALL
+          utm_status: disable
+          inspection_mode: flow
+          logtraffic: all
+          nat: disable
+          comments: 'added using ansible'
+    - fortios_vpn_ipsec_phase1_interface:
+        vdom: '{{ vdom }}'
+        state: present
+        vpn_ipsec_phase1_interface:
+          name: '{{ phase1name }}'
+          type: static
+          interface: port2
+          ip_version: '4'
+          ike_version: '2'
+          local_gw: "{{ localgwip }}"
+          local_gw6: '::'
+          remote_gw: "{{ remotegwip }}" 
+          remote_gw6: '::'
+          remotegw_ddns: ''
+          keylife: 86400
+          authmethod: psk
+          authmethod_remote: 'psk'
+          mode: main
+          peertype: any
+          peerid: ''
+          default_gw: 0.0.0.0
+          default_gw_priority: 0
+          usrgrp: ''
+          peer: ''
+          peergrp: ''
+          monitor: []
+          monitor_min: 0
+          monitor_hold_down_type: immediate
+          monitor_hold_down_delay: 0
+          monitor_hold_down_weekday: sunday
+          monitor_hold_down_time: 00:00
+          net_device: disable
+          passive_mode: disable
+          exchange_interface_ip: disable
+          exchange_ip_addr4: 0.0.0.0
+          exchange_ip_addr6: '::'
+          aggregate_member: disable
+          aggregate_weight: 1
+          packet_redistribution: disable
+          mode_cfg: disable
+          mode_cfg_allow_client_selector: disable
+          assign_ip: enable
+          assign_ip_from: range
+          ipv4_start_ip: 0.0.0.0
+          ipv4_end_ip: 0.0.0.0
+          ipv4_netmask: 255.255.255.255
+          dhcp_ra_giaddr: 0.0.0.0
+          dhcp6_ra_linkaddr: '::'
+          dns_mode: manual
+          ipv4_dns_server1: 0.0.0.0
+          ipv4_dns_server2: 0.0.0.0
+          ipv4_dns_server3: 0.0.0.0
+          internal_domain_list: []
+          ipv4_wins_server1: 0.0.0.0
+          ipv4_wins_server2: 0.0.0.0
+          ipv4_exclude_range: []
+          ipv4_split_include: ''
+          split_include_service: ''
+          ipv4_name: ''
+          ipv6_start_ip: '::'
+          ipv6_end_ip: '::'
+          ipv6_prefix: 128
+          ipv6_dns_server1: '::'
+          ipv6_dns_server2: '::'
+          ipv6_dns_server3: '::'
+          ipv6_exclude_range: []
+          ipv6_split_include: ''
+          ipv6_name: ''
+          ip_delay_interval: 0
+          unity_support: enable
+          domain: ''
+          banner: ''
+          include_local_lan: disable
+          ipv4_split_exclude: ''
+          ipv6_split_exclude: ''
+          save_password: disable
+          client_auto_negotiate: disable
+          client_keep_alive: disable
+          backup_gateway: []
+          proposal:
+          - aes128-sha256
+          - aes256-sha256
+          - aes128gcm-prfsha256
+          - aes256gcm-prfsha384
+          - chacha20poly1305-prfsha256
+          add_route: enable
+          add_gw_route: disable
+          psksecret: "fortinet"
+          psksecret_remote: "fortinet"
+          keepalive: 10
+          distance: 15
+          priority: 1
+          localid: ''
+          localid_type: auto
+          auto_negotiate: enable
+          negotiate_timeout: 30
+          fragmentation: enable
+          ip_fragmentation: post-encapsulation
+          dpd: on-demand
+          dpd_retrycount: 3
+          dpd_retryinterval: '20'
+          comments: ''
+          npu_offload: enable
+          dhgrp:
+          - '14'
+          - '5'
+          suite_b: disable
+          eap: disable
+          eap_identity: use-id-payload
+          eap_exclude_peergrp: ''
+          acct_verify: disable
+          ppk: disable
+          ppk_secret: ''
+          ppk_identity: ''
+          wizard_type: custom
+          xauthtype: disable
+          reauth: disable
+          authusr: ''
+          authpasswd: ''
+          group_authentication: disable
+          group_authentication_secret: ''
+          authusrgrp: ''
+          mesh_selector_type: disable
+          idle_timeout: disable
+          idle_timeoutinterval: 15
+          ha_sync_esp_seqno: enable
+          fgsp_sync: disable
+          inbound_dscp_copy: disable
+          auto_discovery_sender: disable
+          auto_discovery_receiver: disable
+          auto_discovery_forwarder: disable
+          auto_discovery_psk: disable
+          auto_discovery_shortcuts: independent
+          auto_discovery_crossover: allow
+          auto_discovery_offer_interval: 5
+          encapsulation: none
+          encapsulation_address: ike
+          encap_local_gw4: 0.0.0.0
+          encap_local_gw6: '::'
+          encap_remote_gw4: 0.0.0.0
+          encap_remote_gw6: '::'
+          vni: 0
+          nattraversal: enable
+          esn: disable
+          fragmentation_mtu: 1200
+          childless_ike: disable
+          rekey: enable
+          digital_signature_auth: disable
+          signature_hash_alg:
+          - sha2-256
+          enforce_unique_id: disable
+
+    - fortios_vpn_ipsec_phase2_interface:
+        vdom: '{{ vdom }}'
+        state: present
+        vpn_ipsec_phase2_interface:
+          name: '{{ phase2name }}'
+          phase1name: '{{ phase1name }}'
+          dhcp_ipsec: disable
+          proposal:
+          - aes256-sha256
+          pfs: enable
+          ipv4_df: disable
+          dhgrp:
+          - '14'
+          - '5'
+          replay: enable
+          keepalive: disable
+          auto_negotiate: disable
+          add_route: phase1
+          inbound_dscp_copy: phase1
+          auto_discovery_sender: phase1
+          auto_discovery_forwarder: phase1
+          keylifeseconds: 43200
+          keylifekbs: 5120
+          keylife_type: seconds
+          single_source: disable
+          route_overlap: use-new
+          encapsulation: tunnel-mode
+          l2tp: disable
+          comments: ''
+          initiator_ts_narrow: disable
+          diffserv: disable
+          diffservcode: '000000'
+          protocol: 0
+          src_name: ''
+          src_name6: ''
+          src_addr_type: subnet
+          src_end_ip6: '::'
+          src_subnet: 0.0.0.0 0.0.0.0
+          src_port: 0
+          dst_name: ''
+          dst_name6: ''
+          dst_addr_type: subnet
+          dst_end_ip6: '::'
+          dst_subnet: 0.0.0.0 0.0.0.0
+          dst_port: 0
+    - name: add firewall rule ipsec traffic
+      fortios_firewall_policy:
+        vdom: '{{ vdom }}'
+        state: present
+        firewall_policy:
+          status: enable
+          policyid: 1
+          name: test1
+          srcintf:
+          - name: port2
+          - name: "{{ phase2name }}"
+          dstintf:
+          - name: "{{ phase2name }}"
+          - name: port2
+          action: accept
+          srcaddr:
+          - name: all
+          dstaddr:
+          - name: all
+          schedule: always
+          service:
+          - name: ALL
+          utm_status: disable
+          inspection_mode: flow
+          logtraffic: all
+          nat: disable
+          comments: 'added using ansible'
+    - name: add firewall rule virtual wire pair traffic
+      fortios_firewall_policy:
+        vdom: '{{ vdom }}'
+        state: present
+        firewall_policy:
+          status: enable
+          policyid: 2
+          name: test2
+          srcintf:
+          - name: port4
+          - name: vxlan1
+          dstintf:
+          - name: port4
+          - name: vxlan1
+          action: accept
+          srcaddr:
+          - name: all
+          dstaddr:
+          - name: all
+          schedule: always
+          service:
+          - name: ALL
+          utm_status: disable
+          inspection_mode: flow
+          logtraffic: all
+          nat: disable
+          comments: 'added using ansible'
